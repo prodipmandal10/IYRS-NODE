@@ -42,7 +42,7 @@ generate_random_jpg() {
 while true; do
   print_header
   echo -e "${YELLOW}${BOLD}╔══════════════════════════════════════════════╗${RESET}"
-  echo -e "${YELLOW}${BOLD}║      🔵 BENGAL AIRDROP GENSYN MENU 🔵    ║${RESET}"
+  echo -e "${YELLOW}${BOLD}║      🔵 BENGAL AIRDROP IYRS MENU 🔵    ║${RESET}"
   echo -e "${YELLOW}${BOLD}╠══════════════════════════════════════════════╣${RESET}"
   echo -e "${YELLOW}${BOLD}║ [${YELLOW}1${RESET}${BOLD}] ${PINK}📦 Install Dependencies & Irys CLI         ${YELLOW}${BOLD}  ║${RESET}"
   echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${RESET}${BOLD}] ${PINK}💰 Fund Wallet (Devnet)                   ${YELLOW}${BOLD}  ║${RESET}"
