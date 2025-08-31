@@ -40,7 +40,10 @@ menu() {
     1)
       echo -e "${CYAN}>>> Updating system & installing dependencies...${RESET}"
       sudo apt-get update && sudo apt-get upgrade -y
-      sudo apt install curl iptables build-essential git wget lz4 jq make protobuf-compiler cmake gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip screen ufw imagemagick -y
+      sudo apt install -y curl iptables build-essential git wget lz4 jq make \
+        protobuf-compiler cmake gcc nano automake autoconf tmux htop nvme-cli \
+        libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils \
+        ncdu unzip screen ufw imagemagick
       echo -e "${CYAN}>>> Installing Node.js 20...${RESET}"
       curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
       sudo apt install -y nodejs
@@ -51,6 +54,7 @@ menu() {
       echo -e "${CYAN}>>> Installing Irys CLI...${RESET}"
       sudo npm i -g @irys/cli
       echo -e "${GREEN}>>> Irys installed! Test with: irys${RESET}"
+      read -p "Press Enter to return to menu..."
       ;;
     2)
       # Fund Wallet
@@ -60,18 +64,26 @@ menu() {
       read -p "Enter RPC URL: " RPC_URL
       echo -e "${CYAN}>>> Funding wallet...${RESET}"
       irys fund 1000000 -n devnet -t ethereum -w $PRIVATE_KEY --provider-url $RPC_URL
+      read -p "Press Enter to return to menu..."
       ;;
     3)
       # Check balance
       read -p "Enter Wallet Address: " WALLET_ADDRESS
+      if [ -z "$RPC_URL" ]; then
+          read -p "Enter RPC URL (was not set yet): " RPC_URL
+      fi
       echo -e "${CYAN}>>> Checking wallet balance...${RESET}"
-      irys balance $WALLET_ADDRESS -t ethereum -n devnet --provider-url $RPC_URL
+      if ! irys balance $WALLET_ADDRESS -t ethereum -n devnet --provider-url $RPC_URL; then
+          echo -e "${RED}⚠️  Balance check failed! Please check RPC or Wallet Address.${RESET}"
+      fi
+      read -p "Press Enter to return to menu..."
       ;;
     4)
       # Manual upload
       read -p "Enter filename to upload: " UPLOAD_FILE
       echo -e "${CYAN}>>> Uploading file: $UPLOAD_FILE ${RESET}"
       irys upload $UPLOAD_FILE -n devnet -t ethereum -w $PRIVATE_KEY --tags name=$UPLOAD_FILE format=image/jpeg --provider-url $RPC_URL
+      read -p "Press Enter to return to menu..."
       ;;
     5)
       # Auto-generate random jpg
@@ -79,6 +91,7 @@ menu() {
       RANDOM_FILE=$(generate_random_jpg)
       echo -e "${GREEN}Generated file: $RANDOM_FILE${RESET}"
       irys upload $RANDOM_FILE -n devnet -t ethereum -w $PRIVATE_KEY --tags name=$RANDOM_FILE format=image/jpeg --provider-url $RPC_URL
+      read -p "Press Enter to return to menu..."
       ;;
     0)
       echo -e "${RED}Exiting... Goodbye! 👋${RESET}"
@@ -86,6 +99,7 @@ menu() {
       ;;
     *)
       echo -e "${RED}Invalid option!${RESET}"
+      read -p "Press Enter to return to menu..."
       ;;
   esac
 }
