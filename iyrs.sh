@@ -64,13 +64,14 @@ while true; do
     echo -e "${YELLOW}${BOLD}║      🔵 BENGAL AIRDROP IYRS MENU 🔵         ║${RESET}"
     echo -e "${YELLOW}${BOLD}╠══════════════════════════════════════════════╣${RESET}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}1${RESET}${BOLD}] ${PINK}📦 Install Dependencies & Irys CLI         ${YELLOW}${BOLD}  ║${RESET}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${RESET}${BOLD}] ${PINK}💰 Fund Wallet (Devnet)                   ${YELLOW}${BOLD}  ║${RESET}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}3${RESET}${BOLD}] ${PINK}⚙️ Change Config (RPC / Key / Wallet)    ${YELLOW}${BOLD}  ║${RESET}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}4${RESET}${BOLD}] ${PINK}🔍 Check Wallet Balance                   ${YELLOW}${BOLD}  ║${RESET}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}5${RESET}${BOLD}] ${PINK}⬆️ Upload File (Manual)                   ${YELLOW}${BOLD}  ║${RESET}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}6${RESET}${BOLD}] ${PINK}🔄 Auto-generate & Upload Random JPG    ${YELLOW}${BOLD}  ║${RESET}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}7${RESET}${BOLD}] ${PINK}📜 View Uploaded Files                   ${YELLOW}${BOLD}  ║${RESET}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}0${RESET}${BOLD}] ${PINK}👋 Exit Script                           ${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${RESET}${BOLD}] ${PINK}⚙️ Setup Config (Private Key / RPC / Wallet)${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}3${RESET}${BOLD}] ${PINK}🔄 Change Config (RPC / Key / Wallet)      ${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}4${RESET}${BOLD}] ${PINK}💰 Fund Wallet (Devnet)                   ${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}5${RESET}${BOLD}] ${PINK}🔍 Check Wallet Balance                    ${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}6${RESET}${BOLD}] ${PINK}⬆️ Upload File (Manual)                    ${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}7${RESET}${BOLD}] ${PINK}🔄 Auto-generate & Upload Random JPG     ${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}8${RESET}${BOLD}] ${PINK}📜 View Uploaded Files                    ${YELLOW}${BOLD}  ║${RESET}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}0${RESET}${BOLD}] ${PINK}👋 Exit Script                            ${YELLOW}${BOLD}  ║${RESET}"
     echo -e "${YELLOW}${BOLD}╚══════════════════════════════════════════════╝${RESET}"
     echo ""
     
@@ -102,10 +103,7 @@ while true; do
             read -p "Enter RPC URL: " RPC_URL
             read -p "Enter Wallet Address: " WALLET_ADDRESS
             save_config
-            echo -e "${CYAN}>>> Funding wallet...${RESET}"
-            if ! irys fund 1000000 -n devnet -t ethereum -w "$PRIVATE_KEY" --provider-url "$RPC_URL"; then
-                echo -e "${RED}❌ Funding failed! Check your Private Key or RPC URL.${RESET}"
-            fi
+            echo -e "${GREEN}✅ Config saved successfully!${RESET}"
             read -p "Press Enter to return to menu..."
             ;;
         3)
@@ -131,57 +129,60 @@ while true; do
             read -p "Press Enter to return to menu..."
             ;;
         4)
+            echo -e "${CYAN}>>> Funding wallet...${RESET}"
+            if ! irys fund 1000000 -n devnet -t ethereum -w "$PRIVATE_KEY" --provider-url "$RPC_URL"; then
+                echo -e "${RED}❌ Funding failed! Check your Private Key or RPC URL.${RESET}"
+            fi
+            read -p "Press Enter to return to menu..."
+            ;;
+        5)
             echo -e "${CYAN}>>> Checking wallet balance...${RESET}"
             if ! irys balance "$WALLET_ADDRESS" -t ethereum -n devnet --provider-url "$RPC_URL"; then
                 echo -e "${RED}⚠️ Balance check failed!${RESET}"
             fi
             read -p "Press Enter to return to menu..."
             ;;
-        5)
+        6)
             read -p "Enter filename to upload: " UPLOAD_FILE
             if [ ! -f "$UPLOAD_FILE" ]; then
                 echo -e "${RED}❌ File not found: $UPLOAD_FILE${RESET}"
             else
                 echo -e "${CYAN}>>> Uploading file: $UPLOAD_FILE ${RESET}"
                 UPLOAD_URL=$(irys upload "$UPLOAD_FILE" -n devnet -t ethereum -w "$PRIVATE_KEY" \
-                             --tags name="$UPLOAD_FILE" format=image/jpeg --provider-url "$RPC_URL" 2>&1 | \
-                             grep -o 'https://gateway.irys.xyz/.*')
-                if [ -z "$UPLOAD_URL" ]; then
-                    echo -e "${RED}❌ Upload failed!${RESET}"
-                else
+                             --tags name="$UPLOAD_FILE" format=image/jpeg --provider-url "$RPC_URL" 2>/dev/null | grep -o 'https://gateway.irys.xyz/[^ ]*')
+                if [ -n "$UPLOAD_URL" ]; then
                     echo -e "${GREEN}✅ Upload successful! URL: $UPLOAD_URL${RESET}"
-                    echo "$UPLOAD_FILE - $UPLOAD_URL" >> "$UPLOADED_FILE_LIST"
+                    echo "$UPLOAD_URL" >> "$UPLOADED_FILE_LIST"
+                else
+                    echo -e "${RED}❌ Upload failed!${RESET}"
                 fi
             fi
             read -p "Press Enter to return to menu..."
             ;;
-        6)
+        7)
             echo -e "${CYAN}>>> Generating random JPG (~8 KB) and uploading...${RESET}"
             RANDOM_FILE=$(generate_random_jpg)
             if [ -z "$RANDOM_FILE" ]; then
                 echo -e "${RED}❌ File generation failed.${RESET}"
             else
-                echo -e "${GREEN}Generated file: $RANDOM_FILE${RESET}"
                 UPLOAD_URL=$(irys upload "$RANDOM_FILE" -n devnet -t ethereum -w "$PRIVATE_KEY" \
-                             --tags name="$RANDOM_FILE" format=image/jpeg --provider-url "$RPC_URL" 2>&1 | \
-                             grep -o 'https://gateway.irys.xyz/.*')
-                if [ -z "$UPLOAD_URL" ]; then
-                    echo -e "${RED}❌ Upload failed!${RESET}"
-                else
+                             --tags name="$RANDOM_FILE" format=image/jpeg --provider-url "$RPC_URL" 2>/dev/null | grep -o 'https://gateway.irys.xyz/[^ ]*')
+                if [ -n "$UPLOAD_URL" ]; then
                     echo -e "${GREEN}✅ Upload successful! URL: $UPLOAD_URL${RESET}"
-                    echo "$RANDOM_FILE - $UPLOAD_URL" >> "$UPLOADED_FILE_LIST"
+                    echo "$UPLOAD_URL" >> "$UPLOADED_FILE_LIST"
+                else
+                    echo -e "${RED}❌ Upload failed!${RESET}"
                 fi
                 rm -f "$RANDOM_FILE"
-                echo -e "${CYAN}>>> Cleaned up generated file.${RESET}"
             fi
             read -p "Press Enter to return to menu..."
             ;;
-        7)
-            if [ ! -f "$UPLOADED_FILE_LIST" ] || [ ! -s "$UPLOADED_FILE_LIST" ]; then
-                echo -e "${YELLOW}No uploaded files yet.${RESET}"
+        8)
+            echo -e "${CYAN}>>> Uploaded Files List:${RESET}"
+            if [ -f "$UPLOADED_FILE_LIST" ]; then
+                nl -w2 -s'. ' "$UPLOADED_FILE_LIST"
             else
-                echo -e "${CYAN}Uploaded Files:${RESET}"
-                nl "$UPLOADED_FILE_LIST"
+                echo "No files uploaded yet."
             fi
             read -p "Press Enter to return to menu..."
             ;;
